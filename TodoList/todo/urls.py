@@ -5,9 +5,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('todo/', views.todo, name='todo'),
     path('create/', views.create, name='create'),
-    path('read/<int:no>/', views.read, name='read'),  # 상세
-    path('update/', views.update, name='update'),
+    path('read/<int:no>/', views.read, name='read'),  
+    path('update/', views.update, name='update'),   
     path('delete/', views.delete, name='delete'),
-    path('ing/', views.mark_ing, name='ing'),
-    path('done/', views.toggle_complete, name='toggle_complete'),
+    path('mark_ing/', views.mark_ing, name='mark_ing'),
+    path('toggle_complete/', views.toggle_complete, name='toggle_complete'),
+    path('wait/', views.mark_wait, name='wait'),
 ]

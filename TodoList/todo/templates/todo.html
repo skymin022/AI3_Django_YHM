@@ -13,140 +13,198 @@
     </style>
 </head>
 <body>
-    <div class="container-sm">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
-                <h1>할 일 목록</h1>
-                <hr>
-                <form action="{% url 'create' %}" method="post">
-                </div class="input-group mb-3">
-                    {% csrf_token %}
-                    <div class="input-group mb-3">
-                        <label for="todo" class="input-group-text">제목</label>
-                        <input type="text" name="title" class="form-control" id="todo"
-                            placeholder="할 일을 입력해주세요."
-                            autofocus>
-                    </div>
-                    <div class="input-group mb-3">
-                        <label for="content" class="input-group-text">내용</label>
-                        <input type="text" name="content" class="form-control" id="content"
-                            placeholder="내용 입력."
-                            autofocus>
-                        <button class="btn btn-outline-primary" type="submit">등록</button>
-                    </div>
-                    <div class="create-wrap">
-                </form>
-                <hr>
-                <h3>진행 목록</h3>
-                <table class="table table-bordered text-center align-middle">
-                    <thead>
-                        <tr class="table-dark">
-                            <th>✅</th>
-                            <th class="text-start">할 일</th>
-                            <th>❗</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for todo in ing_list %}
-                            <tr {% if todo.is_completed %}class="table-success"{% endif %}>
-                                <td>
-                                    <form action="{% url 'toggle_complete' %}" method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="no" value="{{ todo.no }}">
-                                        <input type="checkbox" class="form-check-input"
-                                            onchange="this.form.submit()"
-                                            {% if todo.is_completed %}checked{% endif %}>
-                                    </form>
-                                </td>
-                                <td class="text-start" {% if todo.is_completed %}style="text-decoration: line-through;"{% endif %}>
-                                    {{ todo.title }}
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center">
-                                        <form action="{% url 'delete' %}" method="post">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="no" value="{{ todo.no }}">
-                                            <button class="btn btn-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                        <form action="{% url 'ing' %}" method="post">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="no" value="{{ todo.no }}">
-                                            <button class="btn btn-back">
-                                                <i class="bi bi-bootstrap-reboot"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
+<div class="container-sm">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <h1>할 일 목록</h1>
+            <hr>
 
-                        {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">
-                                    조회된 데이터가 없습니다.
-                                </td>
-                            </tr>
+            <!-- 등록 폼 -->
+            <form action="{% url 'create' %}" method="post">
+                {% csrf_token %}
+                {% if messages %}
+                    <ul class="text-danger">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
                         {% endfor %}
-                    </tbody>
-                </table>
-                <hr>
-                <h3>대기 목록</h3>
-                <table class="table table-bordered text-center align-middle">
-                    <thead>
-                        <tr class="table-dark">
-                            <th>✅</th>
-                            <th class="text-start">할 일</th>
-                            <th>❗</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for todo in wait_list %}
-                            <tr>
-                                <td>
-                                    <!-- 유효성 검사 메시지 -->
-                                    {% if messages %}
-                                        <ul class="text-danger">
-                                            {% for message in messages %}
-                                                <li>{{ message }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                    <form action="{% url 'ing' %}" method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="no" value="{{ todo.no }}">
-                                        <button type="submit" class="btn btn-outline-primary">진행</button>
-                                    </form>
-                                </td>
-                                <td class="text-start">
-                                    <a href="{% url 'read' todo.no %}" class="text-decoration-none text-dark">
-                                        {{ todo.title }}
-                                    </a>
-                                </td>
+                    </ul>
+                {% endif %}
+                <div class="input-group mb-3">
+                    <label for="todo" class="input-group-text">제목</label>
+                    <input type="text" name="title" class="form-control" id="todo"
+                        placeholder="할 일을 입력해주세요." autofocus>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="content" class="input-group-text">내용</label>
+                    <input type="text" name="content" class="form-control" id="content"
+                        placeholder="내용 입력.">
+                    <button class="btn btn-outline-primary" type="submit">등록</button>
+                </div>
+            </form>
 
-                                <td>
-                                    <form action="{% url 'delete' %}" method="post">
+            <hr>
+            <!-- 진행 목록 -->
+            <h3>진행 목록</h3>
+            <table class="table table-bordered text-center align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>✅</th>
+                        <th class="text-start">할 일</th>
+                        <th>❗</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for todo in ing_list %}
+                        <tr {% if todo.is_completed %}class="table-success"{% endif %}>
+                            <td>
+                                <form action="{% url 'toggle_complete' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="no" value="{{ todo.no }}">
+                                    <input type="checkbox" class="form-check-input"
+                                           onchange="this.form.submit()"
+                                           {% if todo.status == 'done' %}checked{% endif %}>
+                                </form>
+                            </td>
+                            <td class="text-start">
+                                <a href="{% url 'read' todo.no %}" class="text-decoration-none text-dark">
+                                    {{ todo.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center">
+                                    <form action="{% url 'delete' %}" method="post" class="me-1">
                                         {% csrf_token %}
                                         <input type="hidden" name="no" value="{{ todo.no }}">
                                         <button class="btn btn-danger">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">
-                                    조회된 데이터가 없습니다.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                    <form action="{% url 'wait' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="no" value="{{ todo.no }}">
+                                        <button class="btn btn-back">
+                                            <i class="bi bi-bootstrap-reboot"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                조회된 데이터가 없습니다.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <hr>
+            <!-- 대기 목록 -->
+            <h3>대기 목록</h3>
+            <table class="table table-bordered text-center align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>진행</th>
+                        <th class="text-start">할 일</th>
+                        <th>❗</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for todo in wait_list %}
+                        <tr>
+                            <td>
+                                <form action="{% url 'mark_ing' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="no" value="{{ todo.no }}">
+                                    <button type="submit" class="btn btn-outline-primary">진행</button>
+                                </form>
+                            </td>
+                            <td class="text-start">
+                                <a href="{% url 'read' todo.no %}" class="text-decoration-none text-dark">
+                                    {{ todo.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <form action="{% url 'delete' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="no" value="{{ todo.no }}">
+                                    <button class="btn btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                조회된 데이터가 없습니다.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <hr>
+            <!-- 완료 목록 -->
+            <h3>완료 목록</h3>
+            <table class="table table-bordered text-center align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>✅</th>
+                        <th class="text-start">할 일</th>
+                        <th>❗</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for todo in done_list %}
+                        <tr class="table-success">
+                            <td>
+                                <form action="{% url 'toggle_complete' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="no" value="{{ todo.no }}">
+                                    <input type="checkbox" class="form-check-input"
+                                           onchange="this.form.submit()" checked>
+                                </form>
+                            </td>
+                            <td class="text-start">
+                                <a href="{% url 'read' todo.no %}" class="text-decoration-none text-dark">
+                                    {{ todo.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center">
+                                    <form action="{% url 'delete' %}" method="post" class="me-1">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="no" value="{{ todo.no }}">
+                                        <button class="btn btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{% url 'wait' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="no" value="{{ todo.no }}">
+                                        <button class="btn btn-back">
+                                            <i class="bi bi-bootstrap-reboot"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                조회된 데이터가 없습니다.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
